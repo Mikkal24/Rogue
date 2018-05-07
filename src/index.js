@@ -26,6 +26,7 @@ var initialOtherPlayers = [];
 var otherPlayers;
 var player;
 var myPlayer;
+var keys = {};
 
 function preload() {
   this.load.image("logo", "assets/logo.png");
@@ -57,7 +58,7 @@ function create() {
     maxSize: 1
   });
   myPlayer = player.get();
-  console.log("id: " + id);
+
   if (myPlayer) {
     myPlayer.play("idle");
     myPlayer.setInitialPosition(x, y, id);
@@ -82,37 +83,50 @@ function create() {
   });
 
   // Bind movement keys
-  this.input.keyboard.on("keydown_W", function(event) {
-    y -= 10;
-    myPlayer.setNewPosition(x, y);
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
+  // this.input.keyboard.on("keydown_W", function(event) {
+  //   y -= 10;
+  //   myPlayer.setNewPosition(x, y);
+  //   socket.emit("move player", { x: x, y: y, id: id });
+  // });
 
-  this.input.keyboard.on("keydown_A", function(event) {
-    x -= 10;
-    myPlayer.setNewPosition(x, y);
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
+  // this.input.keyboard.on("keydown_A", function(event) {
+  //   x -= 10;
+  //   myPlayer.setNewPosition(x, y);
+  //   socket.emit("move player", { x: x, y: y, id: id });
+  // });
 
-  this.input.keyboard.on("keydown_S", function(event) {
-    y += 10;
-    myPlayer.setNewPosition(x, y);
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
+  // this.input.keyboard.on("keydown_S", function(event) {
+  //   y += 10;
+  //   myPlayer.setNewPosition(x, y);
+  //   socket.emit("move player", { x: x, y: y, id: id });
+  // });
 
-  this.input.keyboard.on("keydown_D", function(event) {
-    x += 10;
-    myPlayer.setNewPosition(x, y);
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
+  // this.input.keyboard.on("keydown_D", function(event) {
+  //   x += 10;
+  //   myPlayer.setNewPosition(x, y);
+  //   socket.emit("move player", { x: x, y: y, id: id });
+  // });
+  keys.W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+  keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+  keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
 }
 
 function update(time, delta) {
-  move += delta;
-  if (move > 6) {
-    myPlayer.setNewPosition(x, y);
-    move = 0;
+  if (keys.W.isDown) {
+    y -= 10;
   }
+  if (keys.A.isDown) {
+    x -= 10;
+  }
+  if (keys.S.isDown) {
+    y += 10;
+  }
+  if (keys.D.isDown) {
+    x += 10;
+  }
+  myPlayer.setNewPosition(x, y, socket);
+  // move = 0;
 }
 
 socket.on("connect", function() {
