@@ -5,6 +5,12 @@ var app = express();
 
 app.use(express.static(path.join(__dirname, "/")));
 
+var players = [];
+
+app.get("/initialize", function(req, res) {
+  res.json(players);
+});
+
 app.get("*", function(req, res) {
   res.send("/src/index.html");
 });
@@ -18,12 +24,11 @@ var server = app.listen(port, function(err) {
 
 var io = require("socket.io")(server);
 
-var players = [];
-
 io.on("connection", function(socket) {
   console.log("a user connected");
 
   socket.on("disconnect", function(player) {
+    console.log(socket.id);
     io.emit("delete player", player);
     console.log("user disconnected");
   });
