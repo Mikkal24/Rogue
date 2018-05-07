@@ -98516,13 +98516,16 @@ module.exports = Timeline;
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser__ = __webpack_require__(424);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_phaser__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__ = __webpack_require__(1053);
+
+// import "./socketController";
 
 
 var config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
-  width: 800,
-  height: 600,
+  width: screen.width,
+  height: screen.height,
   scene: {
     preload: preload,
     create: create,
@@ -98537,11 +98540,11 @@ var game = new Phaser.Game(config);
 var x = 400;
 var y = 150;
 var move = 0;
-var id = Date.now();
+var id = socket.id;
 var initialOtherPlayers = [];
 var otherPlayers;
-var group;
 var player;
+var myPlayer;
 
 function preload() {
   this.load.image("logo", "assets/logo.png");
@@ -98560,7 +98563,6 @@ function preload() {
 }
 
 function create() {
-  //   var logo = this.add.image(400, 150, "logo");
   this.anims.create({
     key: "idle",
     frames: this.anims.generateFrameNumbers("nothing", { start: 0, end: 3 }),
@@ -98568,65 +98570,24 @@ function create() {
     repeat: -1
   });
 
-  var OtherPlayer = new Phaser.Class({
-    Extends: Phaser.GameObjects.Sprite,
-
-    initialize: function OtherPlayer(scene) {
-      Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
-    },
-
-    setInitialPosition: function(x, y, id) {
-      this.setPosition(x, y);
-      this.setActive(true);
-      this.setVisible(true);
-      this.id = id;
-    },
-
-    setNewPosition: function(x, y) {
-      this.setPosition(x, y);
-    }
+  // Initialize Player
+  player = this.add.group({
+    classType: __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__["a" /* Player */],
+    maxSize: 1
   });
+  myPlayer = player.get();
+  console.log("id: " + id);
+  if (myPlayer) {
+    myPlayer.play("idle");
+    myPlayer.setInitialPosition(x, y, id);
+  }
+  socket.emit("create player", { x: x, y: y, id: id });
 
+  // Initialize Other Players
   otherPlayers = this.add.group({
-    classType: OtherPlayer,
+    classType: __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__["a" /* Player */],
     maxSize: 100
   });
-  group = this.add.group();
-  player = group.get(x, y, "nothing");
-  player.play("idle");
-  // group.x = x;
-  // group.y = y;
-  group.id = Date.now();
-
-  // console.log(group);
-
-  //   otherPlayers = this.add.group({ classType: OtherPlayer, defaultKey: "logo" });
-
-  this.input.keyboard.on("keydown_W", function(event) {
-    // console.log(`X: ${x} ,Y: ${y}`);
-    y -= 10;
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
-
-  this.input.keyboard.on("keydown_A", function(event) {
-    // console.log(`X: ${x} ,Y: ${y}`);
-    x -= 10;
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
-
-  this.input.keyboard.on("keydown_S", function(event) {
-    // console.log(`X: ${x} ,Y: ${y}`);
-    y += 10;
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
-
-  this.input.keyboard.on("keydown_D", function(event) {
-    // console.log(`X: ${x} ,Y: ${y}`);
-    x += 10;
-    socket.emit("move player", { x: x, y: y, id: id });
-  });
-
-  socket.emit("create player", { x: x, y: y, id: id });
 
   initialOtherPlayers.forEach(player => {
     if (player.id !== id) {
@@ -98639,32 +98600,43 @@ function create() {
     }
   });
 
-  //   this.tweens.add({
-  //     targets: logo,
-  //     y: 450,
-  //     duration: 2000,
-  //     ease: "Power2",
-  //     yoyo: true,
-  //     loop: -1
-  //   });
+  // Bind movement keys
+  this.input.keyboard.on("keydown_W", function(event) {
+    y -= 10;
+    myPlayer.setNewPosition(x, y);
+    socket.emit("move player", { x: x, y: y, id: id });
+  });
 
-  //   group = this.add.group({ key: "logo", frameQuantity: 128 });
+  this.input.keyboard.on("keydown_A", function(event) {
+    x -= 10;
+    myPlayer.setNewPosition(x, y);
+    socket.emit("move player", { x: x, y: y, id: id });
+  });
 
-  //   this.input.on("pointermove", function(pointer) {
-  //     console.log(`X: ${pointer.x} ,Y: ${pointer.y}`);
-  //     x = pointer.x;
-  //     y = pointer.y;
-  //   });
+  this.input.keyboard.on("keydown_S", function(event) {
+    y += 10;
+    myPlayer.setNewPosition(x, y);
+    socket.emit("move player", { x: x, y: y, id: id });
+  });
+
+  this.input.keyboard.on("keydown_D", function(event) {
+    x += 10;
+    myPlayer.setNewPosition(x, y);
+    socket.emit("move player", { x: x, y: y, id: id });
+  });
 }
 
 function update(time, delta) {
   move += delta;
   if (move > 6) {
-    // console.log("moved!");
-    Phaser.Actions.ShiftPosition(group.getChildren(), x, y);
+    myPlayer.setNewPosition(x, y);
     move = 0;
   }
 }
+
+socket.on("connect", function() {
+  id = socket.id;
+});
 
 socket.on("create player", function(player) {
   console.log("creating player");
@@ -98678,11 +98650,11 @@ socket.on("create player", function(player) {
   }
 });
 
-socket.on("delete player", function(player) {
+socket.on("delete player", function(deletedPlayerID) {
   console.log("deleting player");
-  if (player.id !== id) {
+  if (deletedPlayerID !== id) {
     var thisOne = otherPlayers.getChildren().find(function(element) {
-      return element.id === player.id;
+      return element.id === deletedPlayerID;
     });
 
     thisOne.destroy();
@@ -98697,10 +98669,6 @@ socket.on("update", function(player) {
 
     thisOne.setNewPosition(player.x, player.y);
   }
-});
-
-socket.on("connect", function() {
-  console.log(socket.id);
 });
 
 
@@ -146213,6 +146181,33 @@ var ReverseString = function (string)
 };
 
 module.exports = ReverseString;
+
+
+/***/ }),
+/* 1053 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+const Player = new Phaser.Class({
+  Extends: Phaser.GameObjects.Sprite,
+
+  initialize: function Player(scene) {
+    Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
+  },
+
+  setInitialPosition: function(x, y, id) {
+    this.setPosition(x, y);
+    this.setActive(true);
+    this.setVisible(true);
+    this.id = id;
+  },
+
+  setNewPosition: function(x, y) {
+    this.setPosition(x, y);
+  }
+});
+/* harmony export (immutable) */ __webpack_exports__["a"] = Player;
+
 
 
 /***/ })

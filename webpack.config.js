@@ -14,6 +14,16 @@ module.exports = {
     },
 
     module: {
+        loaders: [
+            {
+                test: /\.js$/,
+                include: /src/,
+                loader: 'babel',
+                query: {
+                    presets: ['es2015']
+                }
+            }
+        ],
         rules: [
           {
             test: [ /\.vert$/, /\.frag$/ ],

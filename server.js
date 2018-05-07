@@ -29,7 +29,12 @@ io.on("connection", function(socket) {
 
   socket.on("disconnect", function(player) {
     console.log(socket.id);
-    io.emit("delete player", player);
+    var index = players.findIndex(function(element) {
+      return element.id === socket.id;
+    });
+
+    players.splice(index, 1);
+    io.emit("delete player", socket.id);
     console.log("user disconnected");
   });
 
@@ -49,7 +54,4 @@ io.on("connection", function(socket) {
 
     io.emit("update", players[index]);
   });
-  // socket.on('player update', function(id, playerObj){
-  //     var player = gameState.players.filter(playerObj => playerObj.id === id)
-  // })
 });
