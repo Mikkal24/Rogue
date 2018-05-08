@@ -82,30 +82,6 @@ function create() {
     }
   });
 
-  // Bind movement keys
-  // this.input.keyboard.on("keydown_W", function(event) {
-  //   y -= 10;
-  //   myPlayer.setNewPosition(x, y);
-  //   socket.emit("move player", { x: x, y: y, id: id });
-  // });
-
-  // this.input.keyboard.on("keydown_A", function(event) {
-  //   x -= 10;
-  //   myPlayer.setNewPosition(x, y);
-  //   socket.emit("move player", { x: x, y: y, id: id });
-  // });
-
-  // this.input.keyboard.on("keydown_S", function(event) {
-  //   y += 10;
-  //   myPlayer.setNewPosition(x, y);
-  //   socket.emit("move player", { x: x, y: y, id: id });
-  // });
-
-  // this.input.keyboard.on("keydown_D", function(event) {
-  //   x += 10;
-  //   myPlayer.setNewPosition(x, y);
-  //   socket.emit("move player", { x: x, y: y, id: id });
-  // });
   keys.W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
   keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
@@ -125,7 +101,8 @@ function update(time, delta) {
   if (keys.D.isDown) {
     x += 10;
   }
-  myPlayer.setNewPosition(x, y, socket);
+  myPlayer.setNewPosition(x, y);
+  socket.emit("move player", { x: x, y: y, id: id });
   // move = 0;
 }
 

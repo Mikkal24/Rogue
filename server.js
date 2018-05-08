@@ -48,10 +48,11 @@ io.on("connection", function(socket) {
     var index = players.findIndex(function(element) {
       return element.id === player.id;
     });
+    if (typeof index !== "undefined") {
+      players[index].x = player.x;
+      players[index].y = player.y;
 
-    players[index].x = player.x;
-    players[index].y = player.y;
-
-    io.emit("update", players[index]);
+      io.emit("update", players[index]);
+    }
   });
 });

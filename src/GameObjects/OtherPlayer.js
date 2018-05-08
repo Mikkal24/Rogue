@@ -12,8 +12,7 @@ export const Player = new Phaser.Class({
     this.id = id;
   },
 
-  setNewPosition: function(x, y, socket) {
+  setNewPosition: function(x, y) {
     this.setPosition(x, y);
-    socket.emit("move player", { x: this.x, y: this.y, id: this.id });
   }
 });
