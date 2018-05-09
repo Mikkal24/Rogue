@@ -22,16 +22,30 @@ export const SocketListeners = function(socket, state) {
   });
 
   socket.on("update", function(player) {
+    console.log(player);
+    var moving = false;
     if (player.id !== state.id) {
       var thisOne = state.otherPlayers.getChildren().find(function(element) {
         return element.id === player.id;
       });
-      if (player.x !== thisOne.x || player.y !== thisOne.y) {
-        thisOne.setNewPosition(player.x, player.y);
-        thisOne.setAnimation("walk");
-      } else {
-        thisOne.setAnimation("idle");
+      if (typeof thisOne !== "undefined") {
+        if (thisOne.x !== player.x || thisOne.y !== player.y) {
+          thisOne.setPosition(player.x, player.y);
+          moving = true;
+        }
+
+        if (player.attacking) {
+          thisOne.setAnimation("slash");
+        } else if (player.blocking) {
+          thisOne.setAnimation("block");
+        } else if (moving) {
+          thisOne.setAnimation("walk");
+        } else {
+          thisOne.setAnimation("idle");
+        }
       }
     }
   });
+
+  socket.on("attack", function(player) {});
 };

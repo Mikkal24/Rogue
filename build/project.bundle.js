@@ -98633,13 +98633,17 @@ function create() {
     console.log(pointer);
     if (pointer.buttons === 1) {
       state.attack = true;
+      socket.emit("attack", { id: state.id });
     } else if (pointer.buttons === 2) {
       state.block = true;
+      socket.emit("block", { id: state.id });
     }
   });
   this.input.on("pointerup", function(pointer) {
     state.attack = false;
     state.block = false;
+    socket.emit("block release", { id: state.id });
+    socket.emit("attack release", { id: state.id });
   });
 
   socket.emit("create player", { x: state.x, y: state.y, id: state.id });
@@ -98678,9 +98682,10 @@ function update(time, delta) {
   } else {
     state.myPlayer.setAnimation("idle");
   }
-
-  state.myPlayer.setNewPosition(state.x, state.y);
-  socket.emit("move player", { x: state.x, y: state.y, id: state.id });
+  if (state.myPlayer.x !== state.x || state.myPlayer.y !== state.y) {
+    state.myPlayer.setNewPosition(state.x, state.y);
+    socket.emit("move player", { x: state.x, y: state.y, id: state.id });
+  }
   // move = 0;
 }
 
@@ -98691,16 +98696,22 @@ function getInitialPlayers() {
 
   if (request.status === 200) {
     state.initialOtherPlayers = JSON.parse(request.response);
-    state.initialOtherPlayers.forEach(player => {
-      if (player.id !== state.id) {
+    console.log(state.initialOtherPlayers);
+
+    for (var key in state.initialOtherPlayers) {
+      if (key !== state.id) {
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
           console.log(otherPlayer);
           otherPlayer.anims.play("idle");
-          otherPlayer.setInitialPosition(player.x, player.y, player.id);
+          otherPlayer.setInitialPosition(
+            state.initialOtherPlayers[key].x,
+            state.initialOtherPlayers[key].y,
+            key
+          );
         }
       }
-    });
+    }
   }
 }
 
@@ -146315,18 +146326,32 @@ const SocketListeners = function(socket, state) {
   });
 
   socket.on("update", function(player) {
+    console.log(player);
+    var moving = false;
     if (player.id !== state.id) {
       var thisOne = state.otherPlayers.getChildren().find(function(element) {
         return element.id === player.id;
       });
-      if (player.x !== thisOne.x || player.y !== thisOne.y) {
-        thisOne.setNewPosition(player.x, player.y);
-        thisOne.setAnimation("walk");
-      } else {
-        thisOne.setAnimation("idle");
+      if (typeof thisOne !== "undefined") {
+        if (thisOne.x !== player.x || thisOne.y !== player.y) {
+          thisOne.setPosition(player.x, player.y);
+          moving = true;
+        }
+
+        if (player.attacking) {
+          thisOne.setAnimation("slash");
+        } else if (player.blocking) {
+          thisOne.setAnimation("block");
+        } else if (moving) {
+          thisOne.setAnimation("walk");
+        } else {
+          thisOne.setAnimation("idle");
+        }
       }
     }
   });
+
+  socket.on("attack", function(player) {});
 };
 /* harmony export (immutable) */ __webpack_exports__["a"] = SocketListeners;
 

@@ -112,13 +112,17 @@ function create() {
     console.log(pointer);
     if (pointer.buttons === 1) {
       state.attack = true;
+      socket.emit("attack", { id: state.id });
     } else if (pointer.buttons === 2) {
       state.block = true;
+      socket.emit("block", { id: state.id });
     }
   });
   this.input.on("pointerup", function(pointer) {
     state.attack = false;
     state.block = false;
+    socket.emit("block release", { id: state.id });
+    socket.emit("attack release", { id: state.id });
   });
 
   socket.emit("create player", { x: state.x, y: state.y, id: state.id });
@@ -157,9 +161,10 @@ function update(time, delta) {
   } else {
     state.myPlayer.setAnimation("idle");
   }
-
-  state.myPlayer.setNewPosition(state.x, state.y);
-  socket.emit("move player", { x: state.x, y: state.y, id: state.id });
+  if (state.myPlayer.x !== state.x || state.myPlayer.y !== state.y) {
+    state.myPlayer.setNewPosition(state.x, state.y);
+    socket.emit("move player", { x: state.x, y: state.y, id: state.id });
+  }
   // move = 0;
 }
 
@@ -170,15 +175,21 @@ function getInitialPlayers() {
 
   if (request.status === 200) {
     state.initialOtherPlayers = JSON.parse(request.response);
-    state.initialOtherPlayers.forEach(player => {
-      if (player.id !== state.id) {
+    console.log(state.initialOtherPlayers);
+
+    for (var key in state.initialOtherPlayers) {
+      if (key !== state.id) {
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
           console.log(otherPlayer);
           otherPlayer.anims.play("idle");
-          otherPlayer.setInitialPosition(player.x, player.y, player.id);
+          otherPlayer.setInitialPosition(
+            state.initialOtherPlayers[key].x,
+            state.initialOtherPlayers[key].y,
+            key
+          );
         }
       }
-    });
+    }
   }
 }
