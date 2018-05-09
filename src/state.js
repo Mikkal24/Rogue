@@ -1,18 +1,26 @@
-export const Player = new SVGPathSegArcRel.Class({
-  Extends: Phaser.GameObjects.Sprite,
+// game state constructor
+export const State = function() {
+  this.id = "";
+  this.x = 400;
+  this.y = 150;
+  this.initialOtherPlayers = [];
+  this.otherPlayers = {};
+  this.player = {};
+  this.myPlayer = {};
+  this.moving = false;
+  this.attack = false;
+  this.block = false;
+  this.keys = {};
 
-  initialize: function Player(scene) {
-    Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
-  },
+  this.updatePosition = function(x, y) {
+    this.x = x;
+    this.y = y;
+  };
 
-  setInitialPosition: function(x, y, id) {
-    this.setPosition(x, y);
-    this.setActive(true);
-    this.setVisible(true);
-    this.id = id;
-  },
-
-  setNewPosition: function(x, y) {
-    this.setPosition(x, y);
-  }
-});
+  this.initializePlayer = function() {
+    this.add.group({
+      classType: Player,
+      maxSize: 1
+    });
+  };
+};

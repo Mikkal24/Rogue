@@ -98517,8 +98517,12 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser__ = __webpack_require__(424);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_phaser___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_phaser__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__ = __webpack_require__(1053);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__state__ = __webpack_require__(1054);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__socketController__ = __webpack_require__(1055);
 
 // import "./socketController";
+
+
 
 
 var config = {
@@ -98534,22 +98538,15 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+var state = new __WEBPACK_IMPORTED_MODULE_2__state__["a" /* State */]();
 var socket = io();
-var id;
 socket.on("connect", function(initialData) {
-  id = socket.id;
+  state.id = socket.id;
 });
-var x = 400;
-var y = 150;
-var move = 0;
 
-var initialOtherPlayers = [];
-var otherPlayers;
-var player;
-var myPlayer;
-var isMoving = false;
-var keys = {};
-
+/**
+ * THIS IS THE PRE-LOAD FUNCTION
+ */
 function preload() {
   this.load.image("logo", "assets/logo.png");
   this.load.spritesheet("nothing", "assets/knight/idle.png", {
@@ -98572,17 +98569,13 @@ function preload() {
     frameHeight: 42,
     endFrame: 7
   });
-
-  // await fetch("/initialize")
-  //   .then(function(response) {
-  //     return response.json();
-  //   })
-  //   .then(function(players) {
-  //     initialOtherPlayers = players;
-  //   });
 }
 
+/**
+ * THIS IS THE CREATE FUNCTION
+ */
 function create() {
+  // animations
   this.anims.create({
     key: "idle",
     frames: this.anims.generateFrameNumbers("nothing", { start: 0, end: 3 }),
@@ -98593,129 +98586,101 @@ function create() {
   this.anims.create({
     key: "walk",
     frames: this.anims.generateFrameNumbers("walking", { start: 0, end: 7 }),
-    frameRate: 2,
+    frameRate: 24,
     repeat: -1
   });
 
   this.anims.create({
     key: "slash",
     frames: this.anims.generateFrameNumbers("slashing", { start: 0, end: 9 }),
-    frameRate: 2
+    frameRate: 24,
+    repeat: -1
   });
 
   this.anims.create({
     key: "block",
     frames: this.anims.generateFrameNumbers("blocking", { start: 0, end: 6 }),
-    frameRate: 2
+    frameRate: 24
   });
 
   // Initialize Player
-  player = this.add.group({
+  state.player = this.add.group({
     classType: __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__["a" /* Player */],
     maxSize: 1
   });
-  myPlayer = player.get();
 
-  if (myPlayer) {
-    myPlayer.play("idle");
-    myPlayer.setInitialPosition(x, y, id);
+  state.myPlayer = state.player.get();
+
+  if (state.myPlayer) {
+    state.myPlayer.play("idle");
+    state.myPlayer.setInitialPosition(state.x, state.y, state.id);
   }
 
-  // async function fetchAsync() {
-  //   let response = await fetch("/initialize");
-  //   initialOtherPlayers = await response.json();
-  //   initialOtherPlayers.forEach(player => {
-  //     if (player.id !== id) {
-  //       var otherPlayer = otherPlayers.get();
-  //       if (otherPlayer) {
-  //         console.log(otherPlayer);
-  //         otherPlayer.anims.play("idle");
-  //         otherPlayer.setInitialPosition(player.x, player.y, player.id);
-  //       }
-  //     }
-  //   });
-  // }
-
   // Initialize Other Players
-  otherPlayers = this.add.group({
+  state.otherPlayers = this.add.group({
     classType: __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__["a" /* Player */],
     maxSize: 100
   });
 
   getInitialPlayers();
 
-  // fetchAsync();
-  // console.log(initialOtherPlayers);
-
-  keys.W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-  keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-  keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-  keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-
-  // socket
-
-  socket.emit("create player", { x: x, y: y, id: id });
-
-  socket.on("create player", function(player) {
-    console.log("creating player");
-    if (player.id !== id) {
-      var otherPlayer = otherPlayers.get();
-      if (otherPlayer) {
-        console.log(otherPlayer);
-        otherPlayer.anims.play("idle");
-        otherPlayer.setInitialPosition(player.x, player.y, player.id);
-      }
+  // key listeners
+  state.keys.W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+  state.keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+  state.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+  state.keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
+  this.input.on("pointerdown", function(pointer) {
+    console.log(pointer);
+    if (pointer.buttons === 1) {
+      state.attack = true;
+    } else if (pointer.buttons === 2) {
+      state.block = true;
     }
   });
-
-  socket.on("delete player", function(deletedPlayerID) {
-    console.log(`deleting player: ${deletedPlayerID}`);
-    if (deletedPlayerID !== id) {
-      var thisOne = otherPlayers.getChildren().find(function(element) {
-        return element.id === deletedPlayerID;
-      });
-      thisOne.destroy();
-    }
+  this.input.on("pointerup", function(pointer) {
+    state.attack = false;
+    state.block = false;
   });
 
-  socket.on("update", function(player) {
-    if (player.id !== id) {
-      var thisOne = otherPlayers.getChildren().find(function(element) {
-        return element.id === player.id;
-      });
-
-      thisOne.setNewPosition(player.x, player.y);
-    }
-  });
+  socket.emit("create player", { x: state.x, y: state.y, id: state.id });
+  Object(__WEBPACK_IMPORTED_MODULE_3__socketController__["a" /* SocketListeners */])(socket, state);
 }
 
+/**
+ * THIS IS THE UPDATE FUNCTION
+ */
+
 function update(time, delta) {
-  isMoving = false;
-  if (keys.W.isDown) {
-    isMoving = true;
-    y -= 5;
+  state.moving = false;
+  if (state.keys.W.isDown) {
+    state.moving = true;
+    state.y -= 5;
   }
-  if (keys.A.isDown) {
-    isMoving = true;
-    x -= 5;
+  if (state.keys.A.isDown) {
+    state.moving = true;
+    state.x -= 5;
   }
-  if (keys.S.isDown) {
-    isMoving = true;
-    y += 5;
+  if (state.keys.S.isDown) {
+    state.moving = true;
+    state.y += 5;
   }
-  if (keys.D.isDown) {
-    isMoving = true;
-    x += 5;
+  if (state.keys.D.isDown) {
+    state.moving = true;
+    state.x += 5;
   }
 
-  if (isMoving) {
-    myPlayer.setAnimation("walk");
+  if (state.attack) {
+    state.myPlayer.setAnimation("slash");
+  } else if (state.block) {
+    state.myPlayer.setAnimation("block");
+  } else if (state.moving) {
+    state.myPlayer.setAnimation("walk");
   } else {
-    myPlayer.setAnimation("idle");
+    state.myPlayer.setAnimation("idle");
   }
 
-  myPlayer.setNewPosition(x, y);
-  socket.emit("move player", { x: x, y: y, id: id });
+  state.myPlayer.setNewPosition(state.x, state.y);
+  socket.emit("move player", { x: state.x, y: state.y, id: state.id });
   // move = 0;
 }
 
@@ -98725,10 +98690,10 @@ function getInitialPlayers() {
   request.send(null);
 
   if (request.status === 200) {
-    initialOtherPlayers = JSON.parse(request.response);
-    initialOtherPlayers.forEach(player => {
-      if (player.id !== id) {
-        var otherPlayer = otherPlayers.get();
+    state.initialOtherPlayers = JSON.parse(request.response);
+    state.initialOtherPlayers.forEach(player => {
+      if (player.id !== state.id) {
+        var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
           console.log(otherPlayer);
           otherPlayer.anims.play("idle");
@@ -146283,6 +146248,87 @@ const Player = new Phaser.Class({
   }
 });
 /* harmony export (immutable) */ __webpack_exports__["a"] = Player;
+
+
+
+/***/ }),
+/* 1054 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// game state constructor
+const State = function() {
+  this.id = "";
+  this.x = 400;
+  this.y = 150;
+  this.initialOtherPlayers = [];
+  this.otherPlayers = {};
+  this.player = {};
+  this.myPlayer = {};
+  this.moving = false;
+  this.attack = false;
+  this.block = false;
+  this.keys = {};
+
+  this.updatePosition = function(x, y) {
+    this.x = x;
+    this.y = y;
+  };
+
+  this.initializePlayer = function() {
+    this.add.group({
+      classType: Player,
+      maxSize: 1
+    });
+  };
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = State;
+
+
+
+/***/ }),
+/* 1055 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+const SocketListeners = function(socket, state) {
+  socket.on("create player", function(player) {
+    console.log("creating player");
+    if (player.id !== state.id) {
+      var otherPlayer = state.otherPlayers.get();
+      if (otherPlayer) {
+        console.log(otherPlayer);
+        otherPlayer.anims.play("idle");
+        otherPlayer.setInitialPosition(player.x, player.y, player.id);
+      }
+    }
+  });
+
+  socket.on("delete player", function(deletedPlayerID) {
+    console.log(`deleting player: ${deletedPlayerID}`);
+    if (deletedPlayerID !== state.id) {
+      var thisOne = state.otherPlayers.getChildren().find(function(element) {
+        return element.id === deletedPlayerID;
+      });
+      thisOne.destroy();
+    }
+  });
+
+  socket.on("update", function(player) {
+    if (player.id !== state.id) {
+      var thisOne = state.otherPlayers.getChildren().find(function(element) {
+        return element.id === player.id;
+      });
+      if (player.x !== thisOne.x || player.y !== thisOne.y) {
+        thisOne.setNewPosition(player.x, player.y);
+        thisOne.setAnimation("walk");
+      } else {
+        thisOne.setAnimation("idle");
+      }
+    }
+  });
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = SocketListeners;
 
 
 
