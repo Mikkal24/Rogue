@@ -10,9 +10,17 @@ export const Player = new Phaser.Class({
     this.setActive(true);
     this.setVisible(true);
     this.id = id;
+    this.key = "idle";
   },
 
   setNewPosition: function(x, y) {
     this.setPosition(x, y);
+  },
+
+  setAnimation: function(key) {
+    if (this.key !== key) {
+      this.play(key);
+      this.key = key;
+    }
   }
 });

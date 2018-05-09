@@ -26,7 +26,6 @@ var io = require("socket.io")(server);
 
 io.on("connection", function(socket) {
   console.log("a user connected");
-
   socket.on("disconnect", function(player) {
     console.log(socket.id);
     var index = players.findIndex(function(element) {
@@ -48,7 +47,7 @@ io.on("connection", function(socket) {
     var index = players.findIndex(function(element) {
       return element.id === player.id;
     });
-    if (typeof index !== "undefined") {
+    if (typeof players[index] !== "undefined") {
       players[index].x = player.x;
       players[index].y = player.y;
 
