@@ -83,7 +83,3 @@ io.on("connection", function(socket) {
     io.emit("update", players[player.id]);
   });
 });
-
-// var gameLoop = setInterval(function() {
-//   io.emit("update", players);
-// }, 10);

@@ -11,6 +11,7 @@ export const Player = new Phaser.Class({
     this.setVisible(true);
     this.id = id;
     this.key = "idle";
+    this.health = 100;
   },
 
   setNewPosition: function(x, y) {
@@ -22,5 +23,9 @@ export const Player = new Phaser.Class({
       this.play(key);
       this.key = key;
     }
+  },
+
+  takeDamage: function(damage) {
+    this.health -= damage;
   }
 });
