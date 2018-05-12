@@ -7,8 +7,15 @@ import { SocketListeners } from "./socketController";
 var config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
-  width: screen.width,
-  height: screen.height,
+  width: 800,
+  height: 600,
+  physics: {
+    default: "arcade",
+    arcade: {
+      gravity: { y: 300 },
+      debug: true
+    }
+  },
   scene: {
     preload: preload,
     create: create,
@@ -54,6 +61,8 @@ function preload() {
  * THIS IS THE CREATE FUNCTION
  */
 function create() {
+  // bounds
+  this.physics.world.setBounds(0, 0, 800, 600);
   // animations
   this.anims.create({
     key: "idle",
@@ -83,9 +92,10 @@ function create() {
   });
 
   // Initialize Player
-  state.player = this.add.group({
+  state.player = this.physics.add.group({
     classType: Player,
-    maxSize: 1
+    maxSize: 1,
+    collideWorldBounds: true
   });
 
   state.myPlayer = state.player.get();
@@ -96,10 +106,13 @@ function create() {
   }
 
   // Initialize Other Players
-  state.otherPlayers = this.add.group({
+  state.otherPlayers = this.physics.add.group({
     classType: Player,
-    maxSize: 100
+    maxSize: 100,
+    collideWorldBounds: true
   });
+
+  // state.otherPlayers.setBounce(1).setCollideWorldBounds(true);
 
   getInitialPlayers();
 
@@ -109,23 +122,46 @@ function create() {
   state.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
   state.keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
   this.input.on("pointerdown", function(pointer) {
-    console.log(pointer);
     if (pointer.buttons === 1) {
-      state.attack = true;
-      socket.emit("attack", { id: state.id });
+      if (!state.attackTimer) {
+        state.attackTimer = this.time.delayedCall(
+          208,
+          function() {
+            state.myPlayer.attacking = true;
+            socket.emit("attack", { id: state.myPlayer.id });
+            this.time.delayedCall(
+              83,
+              function() {
+                state.myPlayer.attacking = false;
+                socket.emit("attack release");
+                state.attackTimer = null;
+              },
+              this
+            );
+          },
+          this
+        );
+      }
     } else if (pointer.buttons === 2) {
-      state.block = true;
-      socket.emit("block", { id: state.id });
+      state.myPlayer.blocking = true;
+      socket.emit("block", { id: state.myPlayer.id });
     }
   });
+
   this.input.on("pointerup", function(pointer) {
-    state.attack = false;
-    state.block = false;
-    socket.emit("block release", { id: state.id });
-    socket.emit("attack release", { id: state.id });
+    state.myPlayer.attacking = false;
+    state.myPlayer.blocking = false;
+    socket.emit("block release", { id: state.myPlayer.id });
+    socket.emit("attack release", { id: state.myPlayer.id });
   });
 
-  socket.emit("create player", { x: state.x, y: state.y, id: state.id });
+  this.physics.add.overlap(state.myPlayer, state.otherPlayers, playerCollision);
+
+  socket.emit("create player", {
+    x: state.x,
+    y: state.y,
+    id: state.myPlayer.id
+  });
   SocketListeners(socket, state);
 }
 
@@ -135,37 +171,33 @@ function create() {
 
 function update(time, delta) {
   state.moving = false;
-  if (state.keys.W.isDown) {
-    state.moving = true;
-    state.y -= 5;
-  }
+  // keyboard listeners
   if (state.keys.A.isDown) {
+    state.player.setVelocityX(-160);
+    state.myPlayer.flip(180);
     state.moving = true;
-    state.x -= 5;
-  }
-  if (state.keys.S.isDown) {
+  } else if (state.keys.D.isDown) {
+    state.myPlayer.flip(0);
+    state.player.setVelocityX(160);
     state.moving = true;
-    state.y += 5;
+  } else {
+    state.player.setVelocityX(0);
   }
-  if (state.keys.D.isDown) {
-    state.moving = true;
-    state.x += 5;
-  }
-
-  if (state.attack) {
+  if (state.myPlayer.attacking) {
     state.myPlayer.setAnimation("slash");
-  } else if (state.block) {
+  } else if (state.myPlayer.blocking) {
     state.myPlayer.setAnimation("block");
+    // blockCollider(myPlayer);
   } else if (state.moving) {
     state.myPlayer.setAnimation("walk");
   } else {
     state.myPlayer.setAnimation("idle");
   }
-  if (state.myPlayer.x !== state.x || state.myPlayer.y !== state.y) {
-    state.myPlayer.setNewPosition(state.x, state.y);
-    socket.emit("move player", { x: state.x, y: state.y, id: state.id });
-  }
-  // move = 0;
+  socket.emit("move player", {
+    x: state.myPlayer.x,
+    y: state.myPlayer.y,
+    id: state.myPlayer.id
+  });
 }
 
 function getInitialPlayers() {
@@ -191,5 +223,15 @@ function getInitialPlayers() {
         }
       }
     }
+  }
+}
+
+function playerCollision(player, otherPlayer) {
+  if (otherPlayer.attacking && !player.blocking) {
+    player.health -= 10;
+    console.log(player.health);
+    //hit detected
+  } else if (otherPlayer.attacking && player.blocking) {
+    //blocked
   }
 }

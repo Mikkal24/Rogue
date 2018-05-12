@@ -3,6 +3,7 @@ export const State = function() {
   this.id = "";
   this.x = 400;
   this.y = 150;
+  this.attackTimer = null;
   this.initialOtherPlayers = [];
   this.otherPlayers = {};
   this.player = {};

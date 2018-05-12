@@ -22,7 +22,6 @@ export const SocketListeners = function(socket, state) {
   });
 
   socket.on("update", function(player) {
-    console.log(player);
     var moving = false;
     if (player.id !== state.id) {
       var thisOne = state.otherPlayers.getChildren().find(function(element) {
@@ -36,11 +35,17 @@ export const SocketListeners = function(socket, state) {
 
         if (player.attacking) {
           thisOne.setAnimation("slash");
+          thisOne.attacking = true;
         } else if (player.blocking) {
           thisOne.setAnimation("block");
+          thisOne.blocking = true;
         } else if (moving) {
+          thisOne.attacking = false;
+          thisOne.blocking = false;
           thisOne.setAnimation("walk");
         } else {
+          thisOne.attacking = false;
+          thisOne.blocking = false;
           thisOne.setAnimation("idle");
         }
       }

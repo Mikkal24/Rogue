@@ -12,6 +12,9 @@ export const Player = new Phaser.Class({
     this.id = id;
     this.key = "idle";
     this.health = 100;
+    this.direction = 0;
+    this.attacking = false;
+    this.blocking = false;
   },
 
   setNewPosition: function(x, y) {
@@ -27,5 +30,12 @@ export const Player = new Phaser.Class({
 
   takeDamage: function(damage) {
     this.health -= damage;
+  },
+
+  flip: function(newDirection) {
+    if (newDirection !== this.direction) {
+      this.direction = newDirection;
+      this.toggleFlipX();
+    }
   }
 });
