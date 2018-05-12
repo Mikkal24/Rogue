@@ -6,6 +6,7 @@ var app = express();
 app.use(express.static(path.join(__dirname, "/")));
 
 var players = {};
+var playerCount = 0;
 
 app.get("/initialize", function(req, res) {
   res.json(players);
@@ -36,7 +37,8 @@ io.on("connection", function(socket) {
 
   // player connects
   socket.on("create player", function(player) {
-    console.log("creating player");
+    playerCount++;
+    console.log("creating player "+playerCount);
     players[player.id] = {
       id: player.id,
       x: player.x,
@@ -44,6 +46,7 @@ io.on("connection", function(socket) {
       attacking: false,
       blocking: false
     };
+
     io.emit("create player", player);
   });
 

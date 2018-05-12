@@ -15,6 +15,7 @@ export const Player = new Phaser.Class({
     this.direction = 0;
     this.attacking = false;
     this.blocking = false;
+    this.injured = false;
   },
 
   setNewPosition: function(x, y) {
@@ -37,5 +38,7 @@ export const Player = new Phaser.Class({
       this.direction = newDirection;
       this.toggleFlipX();
     }
-  }
+  },
+
+
 });

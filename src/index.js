@@ -82,7 +82,6 @@ function create() {
     key: "slash",
     frames: this.anims.generateFrameNumbers("slashing", { start: 0, end: 9 }),
     frameRate: 24,
-    repeat: -1
   });
 
   this.anims.create({
@@ -121,27 +120,10 @@ function create() {
   state.keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
   state.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
   state.keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
-  this.input.on("pointerdown", function(pointer) {
+  this.input.on("pointerdown", pointer => {
     if (pointer.buttons === 1) {
-      if (!state.attackTimer) {
-        state.attackTimer = this.time.delayedCall(
-          208,
-          function() {
-            state.myPlayer.attacking = true;
-            socket.emit("attack", { id: state.myPlayer.id });
-            this.time.delayedCall(
-              83,
-              function() {
-                state.myPlayer.attacking = false;
-                socket.emit("attack release");
-                state.attackTimer = null;
-              },
-              this
-            );
-          },
-          this
-        );
-      }
+        state.myPlayer.attacking = true;
+        socket.emit("attack", {id: state.myPlayer.id});
     } else if (pointer.buttons === 2) {
       state.myPlayer.blocking = true;
       socket.emit("block", { id: state.myPlayer.id });
@@ -171,6 +153,8 @@ function create() {
 
 function update(time, delta) {
   state.moving = false;
+  // this.physics.world.collide(state.myPlayer, state.otherPlayers);
+  // this.physics.world.collide(state.otherPlayers, state.otherPlayers);
   // keyboard listeners
   if (state.keys.A.isDown) {
     state.player.setVelocityX(-160);
@@ -227,11 +211,18 @@ function getInitialPlayers() {
 }
 
 function playerCollision(player, otherPlayer) {
-  if (otherPlayer.attacking && !player.blocking) {
-    player.health -= 10;
-    console.log(player.health);
-    //hit detected
-  } else if (otherPlayer.attacking && player.blocking) {
-    //blocked
+  console.log(`is this player injured? ${player.injured}`);
+  if(!player.injured){
+    if (otherPlayer.attacking && !player.blocking) {
+      player.health -= 10;
+      player.injured = true;
+      setTimeout(()=>{
+        player.injured = false;
+      }, 5000);
+      console.log(player.health);
+      //hit detected
+    } else if (otherPlayer.attacking && player.blocking) {
+      //blocked
+    }
   }
 }
