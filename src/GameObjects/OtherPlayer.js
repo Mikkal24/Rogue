@@ -12,7 +12,8 @@ export const Player = new Phaser.Class({
     this.id = id;
     this.key = "idle";
     this.health = 100;
-    this.direction = 0;
+    this.knockBackDistance = 50;
+    this.flipState = false;
     this.attacking = false;
     this.blocking = false;
     this.injured = false;
@@ -33,12 +34,11 @@ export const Player = new Phaser.Class({
     this.health -= damage;
   },
 
-  flip: function(newDirection) {
-    if (newDirection !== this.direction) {
-      this.direction = newDirection;
+  flip: function(newFlipState, socket) {
+    if (newFlipState !== this.flipState) {
+      this.flipState = newFlipState;
       this.toggleFlipX();
+      socket.emit("flip", { id: this.id, flipState: this.flipState });
     }
-  },
-
-
+  }
 });

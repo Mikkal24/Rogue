@@ -98546,6 +98546,7 @@ var config = {
 
 var game = new Phaser.Game(config);
 var state = new __WEBPACK_IMPORTED_MODULE_2__state__["a" /* State */]();
+var _this;
 var socket = io();
 socket.on("connect", function(initialData) {
   state.id = socket.id;
@@ -98582,6 +98583,7 @@ function preload() {
  * THIS IS THE CREATE FUNCTION
  */
 function create() {
+  _this = this;
   // bounds
   this.physics.world.setBounds(0, 0, 800, 600);
   // animations
@@ -98603,6 +98605,7 @@ function create() {
     key: "slash",
     frames: this.anims.generateFrameNumbers("slashing", { start: 0, end: 9 }),
     frameRate: 24,
+    repeat: -1
   });
 
   this.anims.create({
@@ -98623,16 +98626,17 @@ function create() {
   if (state.myPlayer) {
     state.myPlayer.play("idle");
     state.myPlayer.setInitialPosition(state.x, state.y, state.id);
+
+    setKnockBackTween();
   }
 
   // Initialize Other Players
   state.otherPlayers = this.physics.add.group({
     classType: __WEBPACK_IMPORTED_MODULE_1__GameObjects_OtherPlayer__["a" /* Player */],
     maxSize: 100,
+    bounceX: 1,
     collideWorldBounds: true
   });
-
-  // state.otherPlayers.setBounce(1).setCollideWorldBounds(true);
 
   getInitialPlayers();
 
@@ -98643,8 +98647,8 @@ function create() {
   state.keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
   this.input.on("pointerdown", pointer => {
     if (pointer.buttons === 1) {
-        state.myPlayer.attacking = true;
-        socket.emit("attack", {id: state.myPlayer.id});
+      state.myPlayer.attacking = true;
+      socket.emit("attack", { id: state.myPlayer.id });
     } else if (pointer.buttons === 2) {
       state.myPlayer.blocking = true;
       socket.emit("block", { id: state.myPlayer.id });
@@ -98674,20 +98678,25 @@ function create() {
 
 function update(time, delta) {
   state.moving = false;
-  this.physics.world.collide(state.myPlayer, state.otherPlayers);
-  this.physics.world.collide(state.otherPlayers, state.otherPlayers);
+
   // keyboard listeners
   if (state.keys.A.isDown) {
     state.player.setVelocityX(-160);
-    state.myPlayer.flip(180);
+    state.myPlayer.flip(true, socket);
     state.moving = true;
   } else if (state.keys.D.isDown) {
-    state.myPlayer.flip(0);
     state.player.setVelocityX(160);
+    state.myPlayer.flip(false, socket);
     state.moving = true;
   } else {
     state.player.setVelocityX(0);
   }
+  // Jump
+  if (state.keys.W.isDown && !state.player.velocityY) {
+    state.player.setVelocityY(-160);
+  }
+
+  // Set animations
   if (state.myPlayer.attacking) {
     state.myPlayer.setAnimation("slash");
   } else if (state.myPlayer.blocking) {
@@ -98712,13 +98721,11 @@ function getInitialPlayers() {
 
   if (request.status === 200) {
     state.initialOtherPlayers = JSON.parse(request.response);
-    console.log(state.initialOtherPlayers);
 
     for (var key in state.initialOtherPlayers) {
       if (key !== state.id) {
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
-          console.log(otherPlayer);
           otherPlayer.anims.play("idle");
           otherPlayer.setInitialPosition(
             state.initialOtherPlayers[key].x,
@@ -98732,20 +98739,40 @@ function getInitialPlayers() {
 }
 
 function playerCollision(player, otherPlayer) {
-  console.log(`is this player injured? ${player.injured}`);
-  if(!player.injured){
+  if (!player.injured) {
     if (otherPlayer.attacking && !player.blocking) {
+      console.log("knocback");
       player.health -= 10;
+      if (otherPlayer.flipState) {
+        state.myPlayer.knockbackDistance = -50;
+        state.knockback.play();
+        console.log("knockback");
+      } else {
+        state.myPlayer.knockbackDistance = 50;
+        state.knockback.play();
+      }
       player.injured = true;
-      setTimeout(()=>{
+      setTimeout(() => {
         player.injured = false;
-      }, 5000);
-      console.log(player.health);
+      }, 1000);
       //hit detected
     } else if (otherPlayer.attacking && player.blocking) {
       //blocked
     }
   }
+}
+
+function setKnockBackTween(tween, targets, myImage) {
+  state.knockback = _this.tweens.add({
+    targets: state.myPlayer,
+    x: {
+      value: () => state.myPlayer.x + state.myPlayer.knockbackDistance,
+      ease: "Power1"
+    },
+    duration: 500,
+    paused: true,
+    onComplete: setKnockBackTween
+  });
 }
 
 
@@ -146279,7 +146306,8 @@ const Player = new Phaser.Class({
     this.id = id;
     this.key = "idle";
     this.health = 100;
-    this.direction = 0;
+    this.knockBackDistance = 50;
+    this.flipState = false;
     this.attacking = false;
     this.blocking = false;
     this.injured = false;
@@ -146300,14 +146328,13 @@ const Player = new Phaser.Class({
     this.health -= damage;
   },
 
-  flip: function(newDirection) {
-    if (newDirection !== this.direction) {
-      this.direction = newDirection;
+  flip: function(newFlipState, socket) {
+    if (newFlipState !== this.flipState) {
+      this.flipState = newFlipState;
       this.toggleFlipX();
+      socket.emit("flip", { id: this.id, flipState: this.flipState });
     }
-  },
-
-
+  }
 });
 /* harmony export (immutable) */ __webpack_exports__["a"] = Player;
 
@@ -146322,7 +146349,7 @@ const Player = new Phaser.Class({
 const State = function() {
   this.id = "";
   this.x = 400;
-  this.y = 150;
+  this.y = 600;
   this.attackTimer = null;
   this.initialOtherPlayers = [];
   this.otherPlayers = {};
@@ -146331,6 +146358,8 @@ const State = function() {
   this.moving = false;
   this.attack = false;
   this.block = false;
+  this.disableInput = false;
+  this.knockback = null;
   this.keys = {};
 
   this.updatePosition = function(x, y) {
@@ -146356,11 +146385,9 @@ const State = function() {
 "use strict";
 const SocketListeners = function(socket, state) {
   socket.on("create player", function(player) {
-    console.log("creating player");
     if (player.id !== state.id) {
       var otherPlayer = state.otherPlayers.get();
       if (otherPlayer) {
-        console.log(otherPlayer);
         otherPlayer.anims.play("idle");
         otherPlayer.setInitialPosition(player.x, player.y, player.id);
       }
@@ -146368,7 +146395,6 @@ const SocketListeners = function(socket, state) {
   });
 
   socket.on("delete player", function(deletedPlayerID) {
-    console.log(`deleting player: ${deletedPlayerID}`);
     if (deletedPlayerID !== state.id) {
       var thisOne = state.otherPlayers.getChildren().find(function(element) {
         return element.id === deletedPlayerID;
@@ -146403,6 +146429,11 @@ const SocketListeners = function(socket, state) {
           thisOne.attacking = false;
           thisOne.blocking = false;
           thisOne.setAnimation("idle");
+        }
+
+        if (thisOne.flipState !== player.flipState) {
+          thisOne.flipState = player.flipState;
+          thisOne.toggleFlipX();
         }
       }
     }

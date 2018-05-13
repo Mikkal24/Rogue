@@ -1,10 +1,8 @@
 export const SocketListeners = function(socket, state) {
   socket.on("create player", function(player) {
-    console.log("creating player");
     if (player.id !== state.id) {
       var otherPlayer = state.otherPlayers.get();
       if (otherPlayer) {
-        console.log(otherPlayer);
         otherPlayer.anims.play("idle");
         otherPlayer.setInitialPosition(player.x, player.y, player.id);
       }
@@ -12,7 +10,6 @@ export const SocketListeners = function(socket, state) {
   });
 
   socket.on("delete player", function(deletedPlayerID) {
-    console.log(`deleting player: ${deletedPlayerID}`);
     if (deletedPlayerID !== state.id) {
       var thisOne = state.otherPlayers.getChildren().find(function(element) {
         return element.id === deletedPlayerID;
@@ -47,6 +44,11 @@ export const SocketListeners = function(socket, state) {
           thisOne.attacking = false;
           thisOne.blocking = false;
           thisOne.setAnimation("idle");
+        }
+
+        if (thisOne.flipState !== player.flipState) {
+          thisOne.flipState = player.flipState;
+          thisOne.toggleFlipX();
         }
       }
     }

@@ -2,7 +2,7 @@
 export const State = function() {
   this.id = "";
   this.x = 400;
-  this.y = 150;
+  this.y = 600;
   this.attackTimer = null;
   this.initialOtherPlayers = [];
   this.otherPlayers = {};
@@ -11,6 +11,8 @@ export const State = function() {
   this.moving = false;
   this.attack = false;
   this.block = false;
+  this.disableInput = false;
+  this.knockback = null;
   this.keys = {};
 
   this.updatePosition = function(x, y) {

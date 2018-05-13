@@ -38,11 +38,12 @@ io.on("connection", function(socket) {
   // player connects
   socket.on("create player", function(player) {
     playerCount++;
-    console.log("creating player "+playerCount);
+    console.log("creating player " + playerCount);
     players[player.id] = {
       id: player.id,
       x: player.x,
       y: player.y,
+      flipState: false,
       attacking: false,
       blocking: false
     };
@@ -83,6 +84,11 @@ io.on("connection", function(socket) {
   socket.on("block release", function(player) {
     players[player.id].blocking = false;
 
+    io.emit("update", players[player.id]);
+  });
+
+  socket.on("flip", function(player) {
+    players[player.id].flipState = player.flipState;
     io.emit("update", players[player.id]);
   });
 });
