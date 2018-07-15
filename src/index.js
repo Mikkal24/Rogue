@@ -56,6 +56,13 @@ function preload() {
     frameHeight: 42,
     endFrame: 7
   });
+
+  // load mapthis.load.tilemapTiledJSON("test2", "assets/testmap.json");
+  this.load.tilemapTiledJSON("map", "assets/map/testmap.json");
+  this.load.spritesheet("colors", "assets/map/colors.png", {
+    frameWidth: 32,
+    frameHeight: 32
+  });
 }
 
 /**
@@ -63,8 +70,30 @@ function preload() {
  */
 function create() {
   _this = this;
+  /** Create MAP */
+  this.map = this.make.tilemap({ key: "map" });
+  this.floorTiles = this.map.addTilesetImage("colors");
+  this.treeBackgroundLayer = this.map.createDynamicLayer(
+    "treeBackground",
+    this.floorTiles,
+    0,
+    0
+  );
+  this.backgroundLayer = this.map.createDynamicLayer(
+    "background",
+    this.floorTiles,
+    0,
+    0
+  );
+  this.floorLayer = this.map.createDynamicLayer("floor", this.floorTiles, 0, 0);
+  this.floorLayer.setCollisionByExclusion([-1]);
+
   // bounds
-  this.physics.world.setBounds(0, 0, 800, 600);
+  this.physics.world.bounds.width = this.floorLayer.width;
+  this.physics.world.bounds.height = this.floorLayer.height;
+
+  // this.physics.world.setBounds(0, 0, 800, 600);
+
   // animations
   this.anims.create({
     key: "idle",
@@ -100,7 +129,18 @@ function create() {
     collideWorldBounds: true
   });
 
+  // establish camera
+
+  this.cameras.main.setBounds(
+    0,
+    0,
+    this.map.widthInPixels,
+    this.map.heightInPixels
+  );
+
   state.myPlayer = state.player.get();
+  this.physics.add.collider(state.myPlayer, this.floorLayer);
+  this.cameras.main.startFollow(state.myPlayer);
 
   if (state.myPlayer) {
     state.myPlayer.play("idle");
@@ -171,8 +211,8 @@ function update(time, delta) {
     state.player.setVelocityX(0);
   }
   // Jump
-  if (state.keys.W.isDown && !state.player.velocityY) {
-    state.player.setVelocityY(-160);
+  if (state.keys.W.isDown && state.myPlayer.body.onFloor()) {
+    state.player.setVelocityY(-250);
   }
 
   // Set animations

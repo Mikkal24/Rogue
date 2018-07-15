@@ -1,8 +1,8 @@
 // game state constructor
 export const State = function() {
   this.id = "";
-  this.x = 400;
-  this.y = 600;
+  this.x = 200;
+  this.y = 200;
   this.attackTimer = null;
   this.initialOtherPlayers = [];
   this.otherPlayers = {};
