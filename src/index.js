@@ -156,6 +156,7 @@ function create() {
     bounceX: 1,
     collideWorldBounds: true
   });
+  this.physics.add.collider(state.otherPlayers, this.floorLayer);
 
   getInitialPlayers();
 
