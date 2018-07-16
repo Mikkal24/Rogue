@@ -7,8 +7,8 @@ import { SocketListeners } from "./socketController";
 var config = {
   type: Phaser.AUTO,
   parent: "phaser-example",
-  width: 800,
-  height: 600,
+  width: 400,
+  height: 300,
   physics: {
     default: "arcade",
     arcade: {
@@ -58,10 +58,14 @@ function preload() {
   });
 
   // load mapthis.load.tilemapTiledJSON("test2", "assets/testmap.json");
-  this.load.tilemapTiledJSON("map", "assets/map/testmap.json");
-  this.load.spritesheet("colors", "assets/map/colors.png", {
-    frameWidth: 32,
-    frameHeight: 32
+  this.load.tilemapTiledJSON("map", "assets/map/tryhard.json");
+  this.load.spritesheet("background", "assets/map/assets/background.png", {
+    frameWidth: 8,
+    frameHeight: 8
+  });
+  this.load.spritesheet("blue_generic", "assets/map/assets/blue_generic.png", {
+    frameWidth: 8,
+    frameHeight: 8
   });
 }
 
@@ -72,25 +76,28 @@ function create() {
   _this = this;
   /** Create MAP */
   this.map = this.make.tilemap({ key: "map" });
-  this.floorTiles = this.map.addTilesetImage("colors");
-  this.treeBackgroundLayer = this.map.createDynamicLayer(
-    "treeBackground",
-    this.floorTiles,
+  this.mainTileSet = this.map.addTilesetImage("blue_generic");
+  this.BackgroundTileSet = this.map.addTilesetImage("blue_generic");
+  this.image_backgroundTileSet = this.map.addTilesetImage("background");
+  this.image_backgroundLayer = this.map.createDynamicLayer(
+    "image_background",
+    this.image_backgroundTileSet,
     0,
     0
   );
-  this.backgroundLayer = this.map.createDynamicLayer(
-    "background",
-    this.floorTiles,
+  this.BackgroundLayer = this.map.createDynamicLayer(
+    "Background",
+    this.BackgroundTileSet,
     0,
     0
   );
-  this.floorLayer = this.map.createDynamicLayer("floor", this.floorTiles, 0, 0);
-  this.floorLayer.setCollisionByExclusion([-1]);
+  this.mainLayer = this.map.createDynamicLayer("MAIN", this.mainTileSet, 0, 0);
+
+  this.mainLayer.setCollisionByExclusion([-1]);
 
   // bounds
-  this.physics.world.bounds.width = this.floorLayer.width;
-  this.physics.world.bounds.height = this.floorLayer.height;
+  this.physics.world.bounds.width = this.mainLayer.width;
+  this.physics.world.bounds.height = this.mainLayer.height;
 
   // this.physics.world.setBounds(0, 0, 800, 600);
 
@@ -139,7 +146,7 @@ function create() {
   );
 
   state.myPlayer = state.player.get();
-  this.physics.add.collider(state.myPlayer, this.floorLayer);
+  this.physics.add.collider(state.myPlayer, this.mainLayer);
   this.cameras.main.startFollow(state.myPlayer);
 
   if (state.myPlayer) {
@@ -156,7 +163,7 @@ function create() {
     bounceX: 1,
     collideWorldBounds: true
   });
-  this.physics.add.collider(state.otherPlayers, this.floorLayer);
+  this.physics.add.collider(state.otherPlayers, this.mainLayer);
 
   getInitialPlayers();
 
