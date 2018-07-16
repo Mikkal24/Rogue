@@ -1,4 +1,4 @@
-import "phaser";
+// import "phaser";
 // import "./socketController";
 import { Player } from "./GameObjects/OtherPlayer";
 import { State } from "./state";

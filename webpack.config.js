@@ -2,6 +2,8 @@
 
 const webpack = require("webpack");
 const path = require("path");
+var BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+  .BundleAnalyzerPlugin;
 
 module.exports = {
   entry: "./src/index.js",
@@ -40,7 +42,8 @@ module.exports = {
     new webpack.DefinePlugin({
       CANVAS_RENDERER: JSON.stringify(true),
       WEBGL_RENDERER: JSON.stringify(true)
-    })
+    }),
+    new BundleAnalyzerPlugin()
   ],
 
   devtool: "eval-source-map"
