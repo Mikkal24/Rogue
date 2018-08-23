@@ -1,6 +1,7 @@
 // import "phaser";
 // import "./socketController";
-import { Player } from "./GameObjects/OtherPlayer";
+import { Player } from "./GameObjects/Player";
+import { KnightAnimations } from './Animations/knightAnimations';
 import { State } from "./state";
 import { SocketListeners } from "./socketController";
 
@@ -35,27 +36,7 @@ socket.on("connect", function(initialData) {
  * THIS IS THE PRE-LOAD FUNCTION
  */
 function preload() {
-  this.load.image("logo", "assets/logo.png");
-  this.load.spritesheet("nothing", "assets/knight/idle.png", {
-    frameWidth: 42,
-    frameHeight: 42,
-    endFrame: 4
-  });
-  this.load.spritesheet("walking", "assets/knight/walk.png", {
-    frameWidth: 42,
-    frameHeight: 42,
-    endFrame: 8
-  });
-  this.load.spritesheet("slashing", "assets/knight/slash.png", {
-    frameWidth: 42,
-    frameHeight: 42,
-    endFrame: 10
-  });
-  this.load.spritesheet("blocking", "assets/knight/block.png", {
-    frameWidth: 42,
-    frameHeight: 42,
-    endFrame: 7
-  });
+  KnightAnimations.load(this);
 
   // load mapthis.load.tilemapTiledJSON("test2", "assets/testmap.json");
   this.load.tilemapTiledJSON("map", "assets/map/tryhard.json");
@@ -102,32 +83,7 @@ function create() {
   // this.physics.world.setBounds(0, 0, 800, 600);
 
   // animations
-  this.anims.create({
-    key: "idle",
-    frames: this.anims.generateFrameNumbers("nothing", { start: 0, end: 3 }),
-    frameRate: 2,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "walk",
-    frames: this.anims.generateFrameNumbers("walking", { start: 0, end: 7 }),
-    frameRate: 24,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "slash",
-    frames: this.anims.generateFrameNumbers("slashing", { start: 0, end: 9 }),
-    frameRate: 24,
-    repeat: -1
-  });
-
-  this.anims.create({
-    key: "block",
-    frames: this.anims.generateFrameNumbers("blocking", { start: 0, end: 6 }),
-    frameRate: 24
-  });
+  KnightAnimations.create(this);
 
   // Initialize Player
   state.player = this.physics.add.group({
@@ -137,7 +93,6 @@ function create() {
   });
 
   // establish camera
-
   this.cameras.main.setBounds(
     0,
     0,
