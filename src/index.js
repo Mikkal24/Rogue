@@ -1,7 +1,7 @@
 // import "phaser";
 // import "./socketController";
 import { Player } from "./GameObjects/Player";
-import { KnightAnimations } from './Animations/knightAnimations';
+import  KnightAnimations  from './Animations/knightAnimations';
 import { State } from "./state";
 import { SocketListeners } from "./socketController";
 
@@ -86,11 +86,7 @@ function create() {
   KnightAnimations.create(this);
 
   // Initialize Player
-  state.player = this.physics.add.group({
-    classType: Player,
-    maxSize: 1,
-    collideWorldBounds: true
-  });
+  state.initializePlayer(this);
 
   // establish camera
   this.cameras.main.setBounds(
@@ -112,12 +108,13 @@ function create() {
   }
 
   // Initialize Other Players
-  state.otherPlayers = this.physics.add.group({
-    classType: Player,
-    maxSize: 100,
-    bounceX: 1,
-    collideWorldBounds: true
-  });
+  state.initializeOtherPlayers(this);
+  // state.otherPlayers = this.physics.add.group({
+  //   classType: Player,
+  //   maxSize: 100,
+  //   bounceX: 1,
+  //   collideWorldBounds: true
+  // });
   this.physics.add.collider(state.otherPlayers, this.mainLayer);
 
   getInitialPlayers();

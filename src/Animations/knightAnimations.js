@@ -1,4 +1,6 @@
-module.exports = {
+let KnightAnimations = {};
+
+export default KnightAnimations = {
     load(context){
         context.load.spritesheet("idling", "assets/knight/idle.png", {
             frameWidth: 42,
@@ -51,3 +53,4 @@ module.exports = {
           });
     }
 }
+

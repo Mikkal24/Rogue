@@ -1,4 +1,6 @@
 // game state constructor
+import { Player } from "./GameObjects/Player";
+
 export const State = function() {
   this.id = "";
   this.x = 200;
@@ -15,15 +17,25 @@ export const State = function() {
   this.knockback = null;
   this.keys = {};
 
-  this.updatePosition = function(x, y) {
+  this.updatePosition = (x, y) => {
     this.x = x;
     this.y = y;
   };
 
-  this.initializePlayer = function() {
-    this.add.group({
+  this.initializePlayer = context => {
+    this.player = context.physics.add.group({
       classType: Player,
-      maxSize: 1
+      maxSize: 1,
+      collideWorldBounds: true
     });
   };
+
+  this.initializeOtherPlayers = context => {
+    this.otherPlayers = context.physics.add.group({
+      classType: Player,
+      maxSize: 100,
+      bounceX: 1,
+      collideWorldBounds: true
+    });
+  }
 };
