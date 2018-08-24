@@ -22,6 +22,11 @@ export const State = function() {
     this.y = y;
   };
 
+  this.initialize = (context) => {
+    this.initializePlayer(context);
+    this.initializeOtherPlayers(context);
+  }
+
   this.initializePlayer = context => {
     this.player = context.physics.add.group({
       classType: Player,

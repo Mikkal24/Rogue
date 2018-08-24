@@ -16,6 +16,7 @@ export const Player = new Phaser.Class({
     this.flipState = false;
     this.attacking = false;
     this.blocking = false;
+    this.moving = false;
     this.injured = false;
   },
 
@@ -40,5 +41,22 @@ export const Player = new Phaser.Class({
       this.toggleFlipX();
       socket.emit("flip", { id: this.id, flipState: this.flipState });
     }
+  },
+
+  updateAnimations: function() {
+    if (this.attacking) {
+      this.setAnimation("slash");
+    } else if (this.blocking) {
+      this.setAnimation("block");
+      // blockCollider(myPlayer);
+    } else if (this.moving) {
+      this.setAnimation("walk");
+    } else {
+      this.setAnimation("idle");
+    }
+  },
+
+  update: function() {
+    this.updateAnimations();
   }
 });

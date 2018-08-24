@@ -109,12 +109,6 @@ function create() {
 
   // Initialize Other Players
   state.initializeOtherPlayers(this);
-  // state.otherPlayers = this.physics.add.group({
-  //   classType: Player,
-  //   maxSize: 100,
-  //   bounceX: 1,
-  //   collideWorldBounds: true
-  // });
   this.physics.add.collider(state.otherPlayers, this.mainLayer);
 
   getInitialPlayers();
@@ -156,17 +150,17 @@ function create() {
  */
 
 function update(time, delta) {
-  state.moving = false;
+  state.myPlayer.moving = false;
 
   // keyboard listeners
   if (state.keys.A.isDown) {
     state.player.setVelocityX(-160);
     state.myPlayer.flip(true, socket);
-    state.moving = true;
+    state..myPlayer.moving = true;
   } else if (state.keys.D.isDown) {
     state.player.setVelocityX(160);
     state.myPlayer.flip(false, socket);
-    state.moving = true;
+    state..myPlayer.moving = true;
   } else {
     state.player.setVelocityX(0);
   }
@@ -175,17 +169,7 @@ function update(time, delta) {
     state.player.setVelocityY(-250);
   }
 
-  // Set animations
-  if (state.myPlayer.attacking) {
-    state.myPlayer.setAnimation("slash");
-  } else if (state.myPlayer.blocking) {
-    state.myPlayer.setAnimation("block");
-    // blockCollider(myPlayer);
-  } else if (state.moving) {
-    state.myPlayer.setAnimation("walk");
-  } else {
-    state.myPlayer.setAnimation("idle");
-  }
+  state.myPlayer.update();
   socket.emit("move player", {
     x: state.myPlayer.x,
     y: state.myPlayer.y,
