@@ -108,7 +108,7 @@ function create() {
   }
 
   // Initialize Other Players
-  state.initializeOtherPlayers(this);
+  state.initializeOtherPlayers(this, socket);
   this.physics.add.collider(state.otherPlayers, this.mainLayer);
 
   getInitialPlayers();
@@ -137,11 +137,7 @@ function create() {
 
   this.physics.add.overlap(state.myPlayer, state.otherPlayers, playerCollision);
 
-  socket.emit("create player", {
-    x: state.x,
-    y: state.y,
-    id: state.myPlayer.id
-  });
+
   SocketListeners(socket, state);
 }
 

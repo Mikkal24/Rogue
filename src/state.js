@@ -27,11 +27,17 @@ export const State = function() {
     this.initializeOtherPlayers(context);
   }
 
-  this.initializePlayer = context => {
+  this.initializePlayer = (context, socket) => {
     this.player = context.physics.add.group({
       classType: Player,
       maxSize: 1,
       collideWorldBounds: true
+    });
+
+    socket.emit("create player", {
+      x: this.x,
+      y: this.y,
+      id: this.myPlayer.id
     });
   };
 
