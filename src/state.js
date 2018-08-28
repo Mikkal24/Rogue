@@ -34,11 +34,15 @@ export const State = function() {
       collideWorldBounds: true
     });
 
+    this.myPlayer=this.player.get();
+
     socket.emit("create player", {
-      x: this.x,
-      y: this.y,
-      id: this.myPlayer.id
+      x: self.x,
+      y: self.y,
+      id: socket.id
     });
+
+
   };
 
   this.initializeOtherPlayers = context => {

@@ -53,6 +53,16 @@ io.on("connection", function(socket) {
 
   // move a player
   socket.on("move player", function(player) {
+    if(typeof players[player.id] === 'undefined'){
+      players[player.id] = {
+        id: player.id,
+        x: player.x,
+        y: player.y,
+        flipState: false,
+        attacking: false,
+        blocking: false
+      };
+    }
     players[player.id].x = player.x;
     players[player.id].y = player.y;
 

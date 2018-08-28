@@ -1,6 +1,7 @@
 export const SocketListeners = function(socket, state) {
   socket.on("create player", function(player) {
-    if (player.id !== state.id) {
+    if (player.id !== state.myPlayer.id) {
+      console.log('creating player', player.id);
       var otherPlayer = state.otherPlayers.get();
       if (otherPlayer) {
         otherPlayer.anims.play("idle");

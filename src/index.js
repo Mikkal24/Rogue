@@ -4,6 +4,7 @@ import { Player } from "./GameObjects/Player";
 import  KnightAnimations  from './Animations/knightAnimations';
 import { State } from "./state";
 import { SocketListeners } from "./socketController";
+import { tryHardmap } from "./Maps/tryHardMap";
 
 var config = {
   type: Phaser.AUTO,
@@ -30,6 +31,7 @@ var _this;
 var socket = io();
 socket.on("connect", function(initialData) {
   state.id = socket.id;
+  console.log(state.id);
 });
 
 /**
@@ -56,37 +58,13 @@ function preload() {
 function create() {
   _this = this;
   /** Create MAP */
-  this.map = this.make.tilemap({ key: "map" });
-  this.mainTileSet = this.map.addTilesetImage("blue_generic");
-  this.BackgroundTileSet = this.map.addTilesetImage("blue_generic");
-  this.image_backgroundTileSet = this.map.addTilesetImage("background");
-  this.image_backgroundLayer = this.map.createDynamicLayer(
-    "image_background",
-    this.image_backgroundTileSet,
-    0,
-    0
-  );
-  this.BackgroundLayer = this.map.createDynamicLayer(
-    "Background",
-    this.BackgroundTileSet,
-    0,
-    0
-  );
-  this.mainLayer = this.map.createDynamicLayer("MAIN", this.mainTileSet, 0, 0);
-
-  this.mainLayer.setCollisionByExclusion([-1]);
-
-  // bounds
-  this.physics.world.bounds.width = this.mainLayer.width;
-  this.physics.world.bounds.height = this.mainLayer.height;
-
-  // this.physics.world.setBounds(0, 0, 800, 600);
+  tryHardmap.create(this);
 
   // animations
   KnightAnimations.create(this);
 
   // Initialize Player
-  state.initializePlayer(this);
+  state.initializePlayer(this, socket);
 
   // establish camera
   this.cameras.main.setBounds(
@@ -96,13 +74,13 @@ function create() {
     this.map.heightInPixels
   );
 
-  state.myPlayer = state.player.get();
+  // state.myPlayer = state.player.get();
   this.physics.add.collider(state.myPlayer, this.mainLayer);
   this.cameras.main.startFollow(state.myPlayer);
 
   if (state.myPlayer) {
     state.myPlayer.play("idle");
-    state.myPlayer.setInitialPosition(state.x, state.y, state.id);
+    state.myPlayer.setInitialPosition(state.x, state.y, socket.id);
 
     setKnockBackTween();
   }
@@ -152,11 +130,11 @@ function update(time, delta) {
   if (state.keys.A.isDown) {
     state.player.setVelocityX(-160);
     state.myPlayer.flip(true, socket);
-    state..myPlayer.moving = true;
+    state.myPlayer.moving = true;
   } else if (state.keys.D.isDown) {
     state.player.setVelocityX(160);
     state.myPlayer.flip(false, socket);
-    state..myPlayer.moving = true;
+    state.myPlayer.moving = true;
   } else {
     state.player.setVelocityX(0);
   }
