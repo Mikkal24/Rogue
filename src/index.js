@@ -3,8 +3,10 @@
 import { Player } from "./GameObjects/Player";
 import  KnightAnimations  from './Animations/knightAnimations';
 import { State } from "./state";
-import { SocketListeners } from "./socketController";
+import { SocketController } from "./socketController";
 import { tryHardmap } from "./Maps/tryHardMap";
+import tweens from './Tweens/tweens';
+
 
 var config = {
   type: Phaser.AUTO,
@@ -25,31 +27,20 @@ var config = {
   }
 };
 
+
 var game = new Phaser.Game(config);
 var state = new State();
 var _this;
 var socket = io();
-socket.on("connect", function(initialData) {
-  state.id = socket.id;
-  console.log(state.id);
-});
+var socketController = new SocketController(socket);
+
 
 /**
  * THIS IS THE PRE-LOAD FUNCTION
  */
 function preload() {
+  tryHardmap.load(this);
   KnightAnimations.load(this);
-
-  // load mapthis.load.tilemapTiledJSON("test2", "assets/testmap.json");
-  this.load.tilemapTiledJSON("map", "assets/map/tryhard.json");
-  this.load.spritesheet("background", "assets/map/assets/background.png", {
-    frameWidth: 8,
-    frameHeight: 8
-  });
-  this.load.spritesheet("blue_generic", "assets/map/assets/blue_generic.png", {
-    frameWidth: 8,
-    frameHeight: 8
-  });
 }
 
 /**
@@ -59,13 +50,10 @@ function create() {
   _this = this;
   /** Create MAP */
   tryHardmap.create(this);
-
   // animations
   KnightAnimations.create(this);
-
   // Initialize Player
   state.initializePlayer(this, socket);
-
   // establish camera
   this.cameras.main.setBounds(
     0,
@@ -73,17 +61,10 @@ function create() {
     this.map.widthInPixels,
     this.map.heightInPixels
   );
-
   // state.myPlayer = state.player.get();
   this.physics.add.collider(state.myPlayer, this.mainLayer);
   this.cameras.main.startFollow(state.myPlayer);
 
-  if (state.myPlayer) {
-    state.myPlayer.play("idle");
-    state.myPlayer.setInitialPosition(state.x, state.y, socket.id);
-
-    setKnockBackTween();
-  }
 
   // Initialize Other Players
   state.initializeOtherPlayers(this, socket);
@@ -116,7 +97,7 @@ function create() {
   this.physics.add.overlap(state.myPlayer, state.otherPlayers, playerCollision);
 
 
-  SocketListeners(socket, state);
+  socketController.initialize(state);
 }
 
 /**
@@ -143,12 +124,12 @@ function update(time, delta) {
     state.player.setVelocityY(-250);
   }
 
-  state.myPlayer.update();
-  socket.emit("move player", {
-    x: state.myPlayer.x,
-    y: state.myPlayer.y,
-    id: state.myPlayer.id
-  });
+  state.myPlayer.update(socket);
+  // socket.emit("move player", {
+  //   x: state.myPlayer.x,
+  //   y: state.myPlayer.y,
+  //   id: state.myPlayer.id
+  // });
 }
 
 function getInitialPlayers() {
@@ -181,12 +162,15 @@ function playerCollision(player, otherPlayer) {
       console.log("knocback");
       player.health -= 10;
       if (otherPlayer.flipState) {
+        // tweens.knockback()
         state.myPlayer.knockbackDistance = -50;
-        state.knockback.play();
+        // state.knockback.play();
+        state.myPlayer.knockback.play();
         console.log("knockback");
       } else {
         state.myPlayer.knockbackDistance = 50;
-        state.knockback.play();
+        // state.knockback.play();
+        state.myPlayer.knockback.play();
       }
       player.injured = true;
       setTimeout(() => {
@@ -199,15 +183,3 @@ function playerCollision(player, otherPlayer) {
   }
 }
 
-function setKnockBackTween(tween, targets, myImage) {
-  state.knockback = _this.tweens.add({
-    targets: state.myPlayer,
-    x: {
-      value: () => state.myPlayer.x + state.myPlayer.knockbackDistance,
-      ease: "Power1"
-    },
-    duration: 500,
-    paused: true,
-    onComplete: setKnockBackTween
-  });
-}

@@ -1,4 +1,16 @@
 export const tryHardmap = {
+    load: (context) => {
+      context.load.tilemapTiledJSON("map", "assets/map/tryhard.json");
+      context.load.spritesheet("background", "assets/map/assets/background.png", {
+        frameWidth: 8,
+        frameHeight: 8
+      });
+      context.load.spritesheet("blue_generic", "assets/map/assets/blue_generic.png", {
+        frameWidth: 8,
+        frameHeight: 8
+      });
+    },
+
     create: (context) => {
         context.map = context.make.tilemap({ key: "map" });
         context.mainTileSet = context.map.addTilesetImage("blue_generic");

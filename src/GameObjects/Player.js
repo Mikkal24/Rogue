@@ -1,8 +1,14 @@
+import socketController from '../socketController';
+import { tweensLibrary } from '../Tweens/tweens';
+
 export const Player = new Phaser.Class({
   Extends: Phaser.GameObjects.Sprite,
 
   initialize: function Player(scene) {
     Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
+
+    let setKnockBackTween = tweensLibrary.setKnockBackTween.bind(scene);
+    this.knockback = setKnockBackTween(this);
   },
 
   setInitialPosition: function(x, y, id) {
@@ -56,7 +62,16 @@ export const Player = new Phaser.Class({
     }
   },
 
-  update: function() {
+  updateServerWithPosition(socket){
+    socket.emit("move player", {
+      x: this.x,
+      y: this.y,
+      id: this.id
+    });
+  },
+
+  update: function(socket) {
     this.updateAnimations();
+    this.updateServerWithPosition(socket);
   }
 });

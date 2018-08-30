@@ -1,5 +1,8 @@
 // game state constructor
 import { Player } from "./GameObjects/Player";
+import { tweensLibrary } from "./Tweens/tweens";
+
+
 
 export const State = function() {
   this.id = "";
@@ -17,6 +20,7 @@ export const State = function() {
   this.knockback = null;
   this.keys = {};
 
+
   this.updatePosition = (x, y) => {
     this.x = x;
     this.y = y;
@@ -28,6 +32,8 @@ export const State = function() {
   }
 
   this.initializePlayer = (context, socket) => {
+    console.log(context);
+    let knockbacktween = tweensLibrary.setKnockBackTween.bind(context);
     this.player = context.physics.add.group({
       classType: Player,
       maxSize: 1,
@@ -35,14 +41,16 @@ export const State = function() {
     });
 
     this.myPlayer=this.player.get();
-
+    this.myPlayer.play("idle");
+    this.myPlayer.setInitialPosition(this.x, this.y, socket.id);
+    knockbacktween(this.myPlayer);
     socket.emit("create player", {
       x: self.x,
       y: self.y,
       id: socket.id
     });
 
-
+    
   };
 
   this.initializeOtherPlayers = context => {
