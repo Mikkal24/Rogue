@@ -6,16 +6,8 @@ export const Player = new Phaser.Class({
 
   initialize: function Player(scene) {
     Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
-
-    let setKnockBackTween = tweensLibrary.setKnockBackTween.bind(scene);
-    this.knockback = setKnockBackTween(this);
-  },
-
-  setInitialPosition: function(x, y, id) {
-    this.setPosition(x, y);
     this.setActive(true);
     this.setVisible(true);
-    this.id = id;
     this.key = "idle";
     this.health = 100;
     this.knockBackDistance = 50;
@@ -24,9 +16,17 @@ export const Player = new Phaser.Class({
     this.blocking = false;
     this.moving = false;
     this.injured = false;
+    this.setKnockBackTween = tweensLibrary.setKnockBackTween.bind(scene);
+    this.knockback = this.setKnockBackTween(this);
+  },
+
+  setInitialPosition: function(x, y, id) {
+    this.setPosition(x, y);
+    this.id = id;
   },
 
   setNewPosition: function(x, y) {
+    this.id = id;
     this.setPosition(x, y);
   },
 
@@ -48,6 +48,8 @@ export const Player = new Phaser.Class({
       socket.emit("flip", { id: this.id, flipState: this.flipState });
     }
   },
+
+  
 
   updateAnimations: function() {
     if (this.attacking) {

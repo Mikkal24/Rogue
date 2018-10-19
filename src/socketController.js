@@ -1,6 +1,7 @@
 export const SocketController = function(socket) {
   this.socket = socket;
   this.initialize = (state) => {
+    state.myPlayer.id = socket.id;
     this.socket.on("create player", function(player) {
       if (player.id !== state.myPlayer.id) {
         console.log('creating player', player.id);
@@ -22,22 +23,25 @@ export const SocketController = function(socket) {
     });
 
     this.socket.on("connect", function(initialData) {
+      console.log('connected')
       state.id = socket.id;
-      console.log(state.id);
     });
   
     this.socket.on("update", function(player) {
       var moving = false;
-      if (player.id !== state.id) {
+      if (player.id !== state.myPlayer.id) {
         var thisOne = state.otherPlayers.getChildren().find(function(element) {
           return element.id === player.id;
         });
         if (typeof thisOne !== "undefined") {
+          if(thisOne.health<0){
+            thisOne.setAnimation('death');
+            return;
+          }
           if (thisOne.x !== player.x || thisOne.y !== player.y) {
             thisOne.setPosition(player.x, player.y);
             moving = true;
           }
-  
           if (player.attacking) {
             thisOne.setAnimation("slash");
             thisOne.attacking = true;

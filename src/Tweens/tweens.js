@@ -1,6 +1,5 @@
 export var tweensLibrary = {
     setKnockBackTween: function(target){
-        console.log(this);
         target.knockback = this.tweens.add({
           targets: target,
           x: {
@@ -9,7 +8,11 @@ export var tweensLibrary = {
           },
           duration: 500,
           paused: true,
-          onComplete: tweensLibrary.setKnockBackTween(target)
+          onComplete: ()=>{
+            console.log('attempting to reset tween')
+            console.log(target);
+            target.setKnockBackTween(target);
+          }
         });
     },
 }

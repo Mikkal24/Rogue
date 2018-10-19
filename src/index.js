@@ -47,36 +47,22 @@ function preload() {
  * THIS IS THE CREATE FUNCTION
  */
 function create() {
-  _this = this;
-  /** Create MAP */
+
   tryHardmap.create(this);
-  // animations
   KnightAnimations.create(this);
-  // Initialize Player
-  state.initializePlayer(this, socket);
-  // establish camera
+
+  state.initialize(this, socket);
+  this.physics.add.collider(state.myPlayer, this.mainLayer);
+  this.physics.add.collider(state.otherPlayers, this.mainLayer);
+  getInitialPlayers();
   this.cameras.main.setBounds(
     0,
     0,
     this.map.widthInPixels,
     this.map.heightInPixels
-  );
-  // state.myPlayer = state.player.get();
-  this.physics.add.collider(state.myPlayer, this.mainLayer);
+  );;
   this.cameras.main.startFollow(state.myPlayer);
 
-
-  // Initialize Other Players
-  state.initializeOtherPlayers(this, socket);
-  this.physics.add.collider(state.otherPlayers, this.mainLayer);
-
-  getInitialPlayers();
-
-  // key listeners
-  state.keys.W = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-  state.keys.A = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-  state.keys.S = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-  state.keys.D = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
   this.input.on("pointerdown", pointer => {
     if (pointer.buttons === 1) {
       state.myPlayer.attacking = true;
@@ -105,6 +91,8 @@ function create() {
  */
 
 function update(time, delta) {
+  if(state.myPlayer.health<0) return;
+
   state.myPlayer.moving = false;
 
   // keyboard listeners
@@ -125,12 +113,13 @@ function update(time, delta) {
   }
 
   state.myPlayer.update(socket);
-  // socket.emit("move player", {
-  //   x: state.myPlayer.x,
-  //   y: state.myPlayer.y,
-  //   id: state.myPlayer.id
-  // });
 }
+
+
+
+/**
+ * UTIL functions
+ */
 
 function getInitialPlayers() {
   var request = new XMLHttpRequest();
@@ -139,9 +128,8 @@ function getInitialPlayers() {
 
   if (request.status === 200) {
     state.initialOtherPlayers = JSON.parse(request.response);
-
     for (var key in state.initialOtherPlayers) {
-      if (key !== state.id) {
+      if (key !== state.myPlayer.id) {
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
           otherPlayer.anims.play("idle");
@@ -159,26 +147,19 @@ function getInitialPlayers() {
 function playerCollision(player, otherPlayer) {
   if (!player.injured) {
     if (otherPlayer.attacking && !player.blocking) {
-      console.log("knocback");
       player.health -= 10;
       if (otherPlayer.flipState) {
-        // tweens.knockback()
         state.myPlayer.knockbackDistance = -50;
-        // state.knockback.play();
         state.myPlayer.knockback.play();
-        console.log("knockback");
       } else {
         state.myPlayer.knockbackDistance = 50;
-        // state.knockback.play();
         state.myPlayer.knockback.play();
       }
       player.injured = true;
       setTimeout(() => {
         player.injured = false;
       }, 1000);
-      //hit detected
     } else if (otherPlayer.attacking && player.blocking) {
-      //blocked
     }
   }
 }

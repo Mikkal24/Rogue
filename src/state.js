@@ -14,6 +14,7 @@ export const State = function() {
   this.player = {};
   this.myPlayer = {};
   this.moving = false;
+  this.health = 100;
   this.attack = false;
   this.block = false;
   this.disableInput = false;
@@ -26,13 +27,20 @@ export const State = function() {
     this.y = y;
   };
 
-  this.initialize = (context) => {
-    this.initializePlayer(context);
-    this.initializeOtherPlayers(context);
+  this.initialize = (context, socket) => {
+    this.initializePlayer(context, socket);
+    this.initializeOtherPlayers(context, socket);
+    this.initializeKeys(context);
+  }
+
+  this.initializeKeys = (context) => {
+    this.keys.W = context.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+    this.keys.A = context.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.keys.S = context.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+    this.keys.D = context.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
   }
 
   this.initializePlayer = (context, socket) => {
-    console.log(context);
     let knockbacktween = tweensLibrary.setKnockBackTween.bind(context);
     this.player = context.physics.add.group({
       classType: Player,
@@ -45,12 +53,11 @@ export const State = function() {
     this.myPlayer.setInitialPosition(this.x, this.y, socket.id);
     knockbacktween(this.myPlayer);
     socket.emit("create player", {
-      x: self.x,
-      y: self.y,
+      x: this.myPlayer.x,
+      y: this.myPlayer.y,
+      health: this.myPlayer.health,
       id: socket.id
     });
-
-    
   };
 
   this.initializeOtherPlayers = context => {

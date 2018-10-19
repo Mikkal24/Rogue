@@ -22,6 +22,11 @@ export default KnightAnimations = {
             frameHeight: 42,
             endFrame: 7
           });
+          context.load.spritesheet("dieing", "assets/knight/death.png", {
+            frameWidth: 42,
+            frameHeight: 42,
+            endFrame: 9
+          })
     },
 
     create(context){
@@ -51,6 +56,12 @@ export default KnightAnimations = {
             frames: context.anims.generateFrameNumbers("blocking", { start: 0, end: 6 }),
             frameRate: 24
           });
+
+          context.anims.create({
+            key: "death",
+            frames: context.anims.generateFrameNumbers("dieing", {start: 0, end: 8}),
+            frameRate: 24
+          })
     }
 }
 

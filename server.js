@@ -27,6 +27,10 @@ var io = require("socket.io")(server);
 
 io.on("connection", function(socket) {
   console.log("a user connected");
+  console.log(`connected users(${playerCount}): `);
+  for(let player in players){
+    console.log(players[player]);
+  }
 
   // Player disconnects
   socket.on("disconnect", function(player) {
@@ -37,27 +41,31 @@ io.on("connection", function(socket) {
 
   // player connects
   socket.on("create player", function(player) {
-    playerCount++;
-    console.log("creating player " + playerCount);
-    players[player.id] = {
-      id: player.id,
-      x: player.x,
-      y: player.y,
-      flipState: false,
-      attacking: false,
-      blocking: false
-    };
-
-    io.emit("create player", player);
-  });
-
-  // move a player
-  socket.on("move player", function(player) {
-    if(typeof players[player.id] === 'undefined'){
+    if (typeof player.id !== "undefined") {
+      playerCount++;
+      console.log("creating player " + playerCount);
       players[player.id] = {
         id: player.id,
         x: player.x,
         y: player.y,
+        health: player.health,
+        flipState: false,
+        attacking: false,
+        blocking: false
+      };
+
+      io.emit("create player", player);
+    }
+  });
+
+  // move a player
+  socket.on("move player", function(player) {
+    if (typeof players[player.id] === "undefined") {
+      players[player.id] = {
+        id: player.id,
+        x: player.x,
+        y: player.y,
+        health: player.health,
         flipState: false,
         attacking: false,
         blocking: false
@@ -65,6 +73,7 @@ io.on("connection", function(socket) {
     }
     players[player.id].x = player.x;
     players[player.id].y = player.y;
+    players[player.id].health = player.health;
 
     io.emit("update", players[player.id]);
   });
