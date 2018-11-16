@@ -1,6 +1,7 @@
 // game state constructor
 import { Player } from "./GameObjects/Player";
 import { tweensLibrary } from "./Tweens/tweens";
+import { Skeleton } from "./GameObjects/Skeleton";
 
 
 
@@ -11,6 +12,7 @@ export const State = function() {
   this.attackTimer = null;
   this.initialOtherPlayers = [];
   this.otherPlayers = {};
+  this.skeletons = {};
   this.player = {};
   this.myPlayer = {};
   this.moving = false;
@@ -28,8 +30,10 @@ export const State = function() {
   };
 
   this.initialize = (context, socket) => {
+    console.log('initializing state')
     this.initializePlayer(context, socket);
-    this.initializeOtherPlayers(context, socket);
+    this.initializeOtherPlayers(context);
+    this.initializeSkeletons(context);
     this.initializeKeys(context);
   }
 
@@ -49,9 +53,10 @@ export const State = function() {
     });
 
     this.myPlayer=this.player.get();
-    this.myPlayer.play("idle");
+    this.myPlayer.play("knight_idle");
     this.myPlayer.setInitialPosition(this.x, this.y, socket.id);
     knockbacktween(this.myPlayer);
+    console.log("PLAYER",this.myPlayer.health);
     socket.emit("create player", {
       x: this.myPlayer.x,
       y: this.myPlayer.y,
@@ -67,5 +72,14 @@ export const State = function() {
       bounceX: 1,
       collideWorldBounds: true
     });
+  }
+
+  this.initializeSkeletons = context => {
+    this.skeletons = context.physics.add.group({
+      classType: Skeleton,
+      maxSize: 100,
+      bounceX: 1,
+      collideWorldBounds: true
+    })
   }
 };

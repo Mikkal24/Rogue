@@ -7,7 +7,7 @@ export const SocketController = function(socket) {
         console.log('creating player', player.id);
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
-          otherPlayer.anims.play("idle");
+          otherPlayer.anims.play("knight_idle");
           otherPlayer.setInitialPosition(player.x, player.y, player.id);
         }
       }
@@ -34,28 +34,28 @@ export const SocketController = function(socket) {
           return element.id === player.id;
         });
         if (typeof thisOne !== "undefined") {
-          if(thisOne.health<0){
-            thisOne.setAnimation('death');
-            return;
-          }
+          thisOne.health = player.health;
+          
           if (thisOne.x !== player.x || thisOne.y !== player.y) {
             thisOne.setPosition(player.x, player.y);
             moving = true;
           }
-          if (player.attacking) {
-            thisOne.setAnimation("slash");
+          if(thisOne.health<=0){
+            thisOne.setAnimation('knight_death');
+          } else if (player.attacking) {
+            thisOne.setAnimation("knight_slash");
             thisOne.attacking = true;
           } else if (player.blocking) {
-            thisOne.setAnimation("block");
+            thisOne.setAnimation("knight_block");
             thisOne.blocking = true;
           } else if (moving) {
             thisOne.attacking = false;
             thisOne.blocking = false;
-            thisOne.setAnimation("walk");
+            thisOne.setAnimation("knight_walk");
           } else {
             thisOne.attacking = false;
             thisOne.blocking = false;
-            thisOne.setAnimation("idle");
+            thisOne.setAnimation("knight_idle");
           }
   
           if (thisOne.flipState !== player.flipState) {
@@ -67,7 +67,12 @@ export const SocketController = function(socket) {
     });
   
     this.socket.on("attack", function(player) {});
-  }
+
+    socket.on('disconnect', function(){
+      // close everything down
+      state.myPlayer = {}
+    })
+  }  
 }
 
 // export const SocketListeners = function(socket, state) {

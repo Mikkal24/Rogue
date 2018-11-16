@@ -1,7 +1,8 @@
 // import "phaser";
 // import "./socketController";
 import { Player } from "./GameObjects/Player";
-import  KnightAnimations  from './Animations/knightAnimations';
+import KnightAnimations  from './Animations/knightAnimations';
+import SkeletonAnimations from './Animations/skeletonAnimations';
 import { State } from "./state";
 import { SocketController } from "./socketController";
 import { tryHardmap } from "./Maps/tryHardMap";
@@ -41,6 +42,7 @@ var socketController = new SocketController(socket);
 function preload() {
   tryHardmap.load(this);
   KnightAnimations.load(this);
+  SkeletonAnimations.load(this);
 }
 
 /**
@@ -50,6 +52,7 @@ function create() {
 
   tryHardmap.create(this);
   KnightAnimations.create(this);
+  SkeletonAnimations.create(this);
 
   state.initialize(this, socket);
   this.physics.add.collider(state.myPlayer, this.mainLayer);
@@ -132,7 +135,7 @@ function getInitialPlayers() {
       if (key !== state.myPlayer.id) {
         var otherPlayer = state.otherPlayers.get();
         if (otherPlayer) {
-          otherPlayer.anims.play("idle");
+          otherPlayer.anims.play("knight_idle");
           otherPlayer.setInitialPosition(
             state.initialOtherPlayers[key].x,
             state.initialOtherPlayers[key].y,
@@ -145,9 +148,9 @@ function getInitialPlayers() {
 }
 
 function playerCollision(player, otherPlayer) {
-  if (!player.injured) {
+  if (!player.injured && player.health>0) {
     if (otherPlayer.attacking && !player.blocking) {
-      player.health -= 10;
+      player.takeDamage(10);
       if (otherPlayer.flipState) {
         state.myPlayer.knockbackDistance = -50;
         state.myPlayer.knockback.play();

@@ -8,7 +8,7 @@ export const Player = new Phaser.Class({
     Phaser.GameObjects.Sprite.call(this, scene, 0, 0, "nothing");
     this.setActive(true);
     this.setVisible(true);
-    this.key = "idle";
+    this.key = "knight_idle";
     this.health = 100;
     this.knockBackDistance = 50;
     this.flipState = false;
@@ -39,6 +39,7 @@ export const Player = new Phaser.Class({
 
   takeDamage: function(damage) {
     this.health -= damage;
+    console.log(this.health)
   },
 
   flip: function(newFlipState, socket) {
@@ -52,15 +53,18 @@ export const Player = new Phaser.Class({
   
 
   updateAnimations: function() {
-    if (this.attacking) {
-      this.setAnimation("slash");
+    if(this.health<=0){
+      this.setAnimation("knight_death");
+    }
+    else if(this.attacking) {
+      this.setAnimation("knight_slash");
     } else if (this.blocking) {
-      this.setAnimation("block");
+      this.setAnimation("knight_block");
       // blockCollider(myPlayer);
     } else if (this.moving) {
-      this.setAnimation("walk");
+      this.setAnimation("knight_walk");
     } else {
-      this.setAnimation("idle");
+      this.setAnimation("knight_idle");
     }
   },
 
@@ -68,6 +72,7 @@ export const Player = new Phaser.Class({
     socket.emit("move player", {
       x: this.x,
       y: this.y,
+      health: this.health,
       id: this.id
     });
   },

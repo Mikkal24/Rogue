@@ -44,6 +44,7 @@ io.on("connection", function(socket) {
     if (typeof player.id !== "undefined") {
       playerCount++;
       console.log("creating player " + playerCount);
+      console.log(player);
       players[player.id] = {
         id: player.id,
         x: player.x,
