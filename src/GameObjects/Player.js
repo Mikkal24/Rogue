@@ -39,7 +39,6 @@ export const Player = new Phaser.Class({
 
   takeDamage: function(damage) {
     this.health -= damage;
-    console.log(this.health)
   },
 
   flip: function(newFlipState, socket) {
@@ -60,7 +59,6 @@ export const Player = new Phaser.Class({
       this.setAnimation("knight_slash");
     } else if (this.blocking) {
       this.setAnimation("knight_block");
-      // blockCollider(myPlayer);
     } else if (this.moving) {
       this.setAnimation("knight_walk");
     } else {

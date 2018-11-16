@@ -34,6 +34,7 @@ var state = new State();
 var _this;
 var socket = io();
 var socketController = new SocketController(socket);
+var _skeleton;
 
 
 /**
@@ -57,6 +58,9 @@ function create() {
   state.initialize(this, socket);
   this.physics.add.collider(state.myPlayer, this.mainLayer);
   this.physics.add.collider(state.otherPlayers, this.mainLayer);
+  this.physics.add.collider(state.skeletons, this.mainLayer);
+  _skeleton = state.skeletons.get();
+  _skeleton.anims.play("skeleton_walk")
   getInitialPlayers();
   this.cameras.main.setBounds(
     0,
@@ -112,10 +116,13 @@ function update(time, delta) {
   }
   // Jump
   if (state.keys.W.isDown && state.myPlayer.body.onFloor()) {
-    state.player.setVelocityY(-250);
+    state.player.setVelocityY(-100);
   }
 
   state.myPlayer.update(socket);
+
+  (_skeleton.x<state.myPlayer.x)?state.skeletons.setVelocityX(50):state.skeletons.setVelocityX(-50)
+  // _skeleton.move(state.myPlayer);
 }
 
 

@@ -3,18 +3,18 @@ let SkeletonAnimations = {};
 export default SkeletonAnimations = {
     load(context){
         context.load.spritesheet("skeleton_idling", "assets/skeleton/idle.png", {
-            frameWidth: 30,
+            frameWidth: 24,
             frameHeight: 32,
             endFrame: 11
           });
           context.load.spritesheet("skeleton_walking", "assets/skeleton/walk.png", {
-            frameWidth: 30,
-            frameHeight: 32,
+            frameWidth: 22,
+            frameHeight: 33,
             endFrame: 13
           });
           context.load.spritesheet("skeleton_slashing", "assets/skeleton/attack.png", {
             frameWidth: 43,
-            frameHeight: 32,
+            frameHeight: 37,
             endFrame: 18
           });
           context.load.spritesheet("skeleton_damaged", "assets/skeleton/takeDamage.png", {
@@ -23,7 +23,7 @@ export default SkeletonAnimations = {
             endFrame: 8
           });
           context.load.spritesheet("skeleton_dieing", "assets/skeleton/death.png", {
-            frameWidth: 30,
+            frameWidth: 33,
             frameHeight: 32,
             endFrame: 15
           });
@@ -59,13 +59,15 @@ export default SkeletonAnimations = {
           context.anims.create({
             key: "skeleton_damaged",
             frames: context.anims.generateFrameNumbers("skeleton_damaged", { start: 0, end: 7 }),
-            frameRate: 24
+            frameRate: 24,
+            repeat: -1
           });
 
           context.anims.create({
             key: "skeleton_death",
             frames: context.anims.generateFrameNumbers("skeleton_dieing", {start: 0, end: 14}),
-            frameRate: 24
+            frameRate: 24,
+            repeat: -1
           })
     }
 }
